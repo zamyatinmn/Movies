@@ -1,11 +1,9 @@
 package com.example.movies.ui
 
-import android.graphics.Rect
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -22,14 +21,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -52,11 +44,12 @@ class MainActivity : ComponentActivity() {
             MoviesTheme {
                 Surface(Modifier.fillMaxSize()) {
                     val data = viewModel.movieList.observeAsState()
-                    data.value?.data?.results.let {
-                        if (it != null) {
-                            MoviesList(it)
-                        }
-                    }
+                    data.value?.let { MoviesList(it, viewModel) }
+//                    data.value?.data?.results.let {
+//                        if (it != null) {
+//                            MoviesList(it, viewModel)
+//                        }
+//                    }
                 }
             }
         }
@@ -65,7 +58,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MoviesList(list: List<Movie>) {
+fun MoviesList(list: List<Movie>, viewModel: ListingViewModel) {
     Column {
         Box(
             Modifier
@@ -82,11 +75,16 @@ fun MoviesList(list: List<Movie>) {
                 style = MaterialTheme.typography.h2
             )
         }
+        val state = rememberLazyListState()
         LazyVerticalGrid(
             modifier = Modifier.fillMaxSize(),
             cells = GridCells.Fixed(2),
-            contentPadding = PaddingValues(20.dp)
+            contentPadding = PaddingValues(20.dp),
+            state = state
         ) {
+            if (state.firstVisibleItemIndex == list.size / 2 - 6) {
+                viewModel.fetchMovies()
+            }
             items(list) {
                 Card(modifier = Modifier.padding(20.dp), elevation = 0.dp) {
                     Column {

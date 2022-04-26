@@ -16,17 +16,18 @@ class MovieRepository @Inject constructor(
     private val movieRemoteDataSource: MovieRemoteDataSource,
     private val movieDao: MovieDao
 ) {
+    private var page = 1
 
     suspend fun fetchTrendingMovies(): Flow<Result<TrendingMovieResponse>?> {
         return flow {
             emit(fetchTrendingMoviesCached())
             emit(Result.loading())
-            val result = movieRemoteDataSource.fetchTrendingMovies()
+            val result = movieRemoteDataSource.fetchTrendingMovies(page)
+            page++
 
             //Cache to database if response is successful
             if (result.status == Result.Status.SUCCESS) {
                 result.data?.results?.let { it ->
-                    movieDao.deleteAll(it)
                     movieDao.insertAll(it)
                 }
             }

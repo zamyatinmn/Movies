@@ -12,10 +12,10 @@ import javax.inject.Inject
 
 class MovieRemoteDataSource @Inject constructor(private val retrofit: Retrofit) {
 
-    suspend fun fetchTrendingMovies(): Result<TrendingMovieResponse> {
+    suspend fun fetchTrendingMovies(page: Int): Result<TrendingMovieResponse> {
         val movieService = retrofit.create(MovieService::class.java);
         return getResponse(
-                request = { movieService.getPopularMovies() },
+                request = { movieService.getPopularMovies(page) },
                 defaultErrorMessage = "Error fetching Movie list")
 
     }
